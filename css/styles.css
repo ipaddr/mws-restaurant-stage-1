@@ -20,6 +20,7 @@ ul, li {
 a {
 	color: orange;
 	text-decoration: none;
+  padding: 1.5em;
 }
 a:hover, a:focus {
 	color: #3397db;
@@ -33,7 +34,8 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 0 20px;
 }
 article, aside, canvas, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
-	display: block;
+	display: flex;
+  flex-wrap: wrap;
 }
 #maincontent {
   background-color: #f3f3f3;
@@ -105,6 +107,7 @@ nav h1 a {
 }
 /* ====================== Restaurant Filtering ====================== */
 .filter-options {
+  display: flex;
   width: 100%;
   height: 50px;
   background-color: #3397DB;
@@ -131,10 +134,12 @@ nav h1 a {
 
 /* ====================== Restaurant Listing ====================== */
 #restaurants-list {
+  width:  100%;
+  display: flex;
+  flex-wrap: wrap;
   background-color: #f3f3f3;
   list-style: outside none none;
   margin: 0;
-  padding: 30px 15px 60px;
   text-align: center;
 }
 #restaurants-list li {
@@ -145,7 +150,7 @@ nav h1 a {
   min-height: 380px;
   padding: 0 30px 25px;
   text-align: left;
-  width: 270px;
+  min-width: 270px;
 }
 #restaurants-list .restaurant-img {
   background-color: #ccc;
@@ -175,8 +180,8 @@ nav h1 a {
   color: #fff;
   display: inline-block;
   font-size: 10pt;
-  margin: 15px 0 0;
-  padding: 8px 30px 10px;
+  margin: auto;
+  padding: auto;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
@@ -258,18 +263,52 @@ nav h1 a {
 }
 #reviews-list li {
   background-color: #fff;
-    border: 2px solid #f3f3f3;
+  border: 2px solid #f3f3f3;
   display: block;
   list-style-type: none;
-  margin: 0 0 30px;
+  margin: auto;
   overflow: hidden;
-  padding: 0 20px 20px;
+  padding: auto;
   position: relative;
-  width: 85%;
+  width: 75%;
 }
 #reviews-list li p {
-  margin: 0 0 10px;
+  margin: auto;
 }
 #restaurant-hours td {
   color: #666;
+}
+
+@media screen and (min-width: 475px) {
+  li {
+    width: 70%;
+    padding-left: auto;
+    padding-right: auto;
+  }
+}
+
+@media screen and (min-width: 476px) and (max-width: 750px) {
+  li {
+    width: 80%;
+    padding-left: auto;
+    padding-right: auto;
+  }
+}
+
+
+@media screen and (min-width: 751px) and (max-width: 1200px) {
+  li {
+    width: 33.33%;
+    padding-left: auto;
+    padding-right: auto;
+  }
+}
+
+
+@media screen and (min-width: 1201px) {
+  li {
+    width: 25%;
+    padding-left: auto;
+    padding-right: auto;
+  }
 }
