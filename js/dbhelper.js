@@ -4,6 +4,14 @@
 class DBHelper {
 
   /**
+   * init service worker
+   *
+   */
+   initServiceWorker(){
+
+   }
+
+  /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
