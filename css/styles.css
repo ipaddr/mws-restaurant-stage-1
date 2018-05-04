@@ -245,7 +245,9 @@ nav h1 a {
   line-height: 1.1;
 }
 #restaurant-img {
-	width: 100%;
+	max-width: 80VW;
+  min-width: 50VW;
+  margin: auto;
 }
 #restaurant-address {
   width: 100%;
@@ -294,7 +296,6 @@ nav h1 a {
   border: 2px solid #f3f3f3;
   display: block;
   list-style-type: none;
-  margin: 16px 0 16px 0;
   overflow: hidden;
   padding: auto;
   position: relative;
@@ -362,6 +363,10 @@ nav h1 a {
     height: 400 px;
   }
 
+  #reviews-list li{
+    width: 100%;
+  }
+
 }
 
 
@@ -373,7 +378,7 @@ nav h1 a {
   }
 
   #reviews-list li{
-    width: 33.33%;
+    width: 45%;
   }
 
 }
@@ -382,8 +387,9 @@ nav h1 a {
 @media screen and (min-width: 1201px) {
   li {
     width: 25%;
-    padding-left: auto;
-    padding-right: auto;
+    margin:0;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   #reviews-list li{

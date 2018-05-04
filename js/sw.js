@@ -1,5 +1,5 @@
 const staticCacheName = 'mvs-1-1';
-const urlsToCache = ['/', '/css/','/data/','/img/','/js'];
+const urlsToCache = ['/', 'css/','data/','img/','js/'];
 
 self.addEventListener('install', function(event) {
     event.waitUntil(caches.open(staticCacheName).then(function(cache){
