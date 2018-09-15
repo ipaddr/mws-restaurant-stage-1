@@ -73,7 +73,7 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   console.log('[Service Worker] Fetch', e.request.url);
   var dataUrl = e.request.url.pathname;
-  if (urlsToCache.indexOf(dataUrl) > -1) {
+  if (filesToCache.indexOf(dataUrl) > -1) {
     /*
      * When the request URL contains dataUrl, the app is asking for fresh
      * weather data. In this case, the service worker always goes to the
