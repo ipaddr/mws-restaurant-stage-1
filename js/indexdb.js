@@ -1,10 +1,6 @@
 class IndexDB{
 
-    constructor(){
-        this.dbPromise = openDatabase();
-    }
-
-    openDatabase() {
+    static get OPEN_DATABASE() {
         // If the browser doesn't support service worker,
         // we don't care about having a database
         if (!navigator.serviceWorker) {
@@ -41,39 +37,81 @@ class IndexDB{
     * Fetch all restaurants.
     */
     static fetchRestaurants(callback) {
-        fetch(IndexDB.DATABASE_URL)
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(jsonResponse) {
-            const strinJson = JSON.stringify(jsonResponse);
-            const restaurants = JSON.parse(strinJson);
-            callback(null, restaurants);
-          }).catch(function(error) {
+        IndexDB.OPEN_DATABASE.then(function(db){
+            var tx = db.transaction('restaurants', 'readwrite');
+            var store = tx.objectStore('restaurants');
+            var index = store.index('by-id')
+
+            return index.getAll().then(function(restaurants){
+
+                if(restaurants && restaurants.length > 0){
+                    callback(null, restaurants);
+                    return;
+                }
+
+                fetch(IndexDB.DATABASE_URL)
+                  .then(function(response) {
+                    return response.json();
+                  })
+                  .then(function(jsonResponse) {
+                    const strinJson = JSON.stringify(jsonResponse);
+                    const restaurants = JSON.parse(strinJson);
+                    IndexDB.OPEN_DATABASE.then(function(db){
+                        if (!db) return;
+
+                        var tx = db.transaction('restaurants', 'readwrite');
+                        var store = tx.objectStore('restaurants');
+
+                        restaurants.forEach(function(restaurant){
+                            store.put(restaurant);
+                        });
+
+                        // limit store to 30 items
+                        var index = store.index('by-id').openCursor(null, 'prev').then(function(cursor){
+                            return cursor.advance(10);
+                        }).then(function deleteRest(cursor){
+                            if (!cursor) return;
+                            cursor.delete();
+                        return cursor.continue().then(deleteRest);
+                        });
+                    });
+                    callback(null, restaurants);
+                  }).catch(function(error) {
+                    console.log(error);
+                    const errorResponse = (`Request failed. Returned status of ${error}`);
+                    callback(errorResponse, null);
+                  });
+
+        }).catch(function(error) {
             console.log(error);
             const errorResponse = (`Request failed. Returned status of ${error}`);
             callback(errorResponse, null);
-          });
-    }
+        });
+    });
+}
 
     /**
     * Fetch a restaurant by its ID.
     */
     static fetchRestaurantById(id, callback) {
-        this.id = id;
-        fetch(IndexDB.DATABASE_URL_ID())
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(jsonResponse) {
-            const strinJson = JSON.stringify(jsonResponse);
-            const restaurant = JSON.parse(strinJson);
-            callback(null, restaurant);
-          }).catch(function(error) {
+        IndexDB.OPEN_DATABASE.then(function(db){
+            var tx = db.transaction('restaurants');
+            var store = tx.objectStore('restaurants');
+            var index = store.index('by-id');
+            return index.getAll();
+        }).then(function(restaurants){
+            for(var index in restaurants){
+                const restaurant = restaurants[index];
+                if (restaurant.id == id) {
+                    callback(null, restaurant);
+                    break;
+                }
+            }
+        }).catch(function(error) {
             console.log(error);
-            const error = (`Request failed. Returned status of ${error}`);
-            callback(error, null);
-          });
+            const errorResponse = (`Request failed. Returned status of ${error}`);
+            callback(errorResponse, null);
+        });
     }
 
     /**
@@ -97,7 +135,7 @@ class IndexDB{
     */
     static fetchRestaurantByNeighborhood(neighborhood, callback) {
         // Fetch all restaurants
-        DBHelper.fetchRestaurants((error, restaurants) => {
+        IndexDB.fetchRestaurants((error, restaurants) => {
         if (error) {
             callback(error, null);
         } else {
@@ -113,7 +151,7 @@ class IndexDB{
     */
     static fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, callback) {
         // Fetch all restaurants
-        DBHelper.fetchRestaurants((error, restaurants) => {
+        IndexDB.fetchRestaurants((error, restaurants) => {
         if (error) {
             callback(error, null);
         } else {
@@ -152,7 +190,7 @@ class IndexDB{
     */
     static fetchCuisines(callback) {
         // Fetch all restaurants
-        DBHelper.fetchRestaurants((error, restaurants) => {
+        IndexDB.fetchRestaurants((error, restaurants) => {
         if (error) {
             callback(error, null);
         } else {
@@ -176,7 +214,7 @@ class IndexDB{
     * Restaurant image URL.
     */
     static imageUrlForRestaurant(restaurant) {
-        return (`/img/${restaurant.photograph}`);
+        return (`/img/${restaurant.id}.jpg`);
     }
 
     /**
@@ -186,7 +224,7 @@ class IndexDB{
         const marker = new google.maps.Marker({
         position: restaurant.latlng,
         title: restaurant.name,
-        url: DBHelper.urlForRestaurant(restaurant),
+        url: IndexDB.urlForRestaurant(restaurant),
         map: map,
         animation: google.maps.Animation.DROP}
         );

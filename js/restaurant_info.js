@@ -1,6 +1,10 @@
 let restaurant;
 var map;
 
+document.addEventListener('DOMContentLoaded', (event) => {
+  window.initMap();
+});
+
 /**
  * Initialize Google map, called from HTML.
  */
@@ -15,7 +19,7 @@ window.initMap = () => {
         scrollwheel: false
       });
       fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
+      IndexDB.mapMarkerForRestaurant(self.restaurant, self.map);
     }
   });
 }
@@ -33,7 +37,7 @@ fetchRestaurantFromURL = (callback) => {
     error = 'No restaurant id in URL'
     callback(error, null);
   } else {
-    DBHelper.fetchRestaurantById(id, (error, restaurant) => {
+    IndexDB.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
         console.error(error);
@@ -57,7 +61,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img'
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.src = IndexDB.imageUrlForRestaurant(restaurant);
   image.alt = 'Image of ' + restaurant.name +  'Restaurant located near ' + restaurant.neighborhood + ' where exactly at ' + restaurant.address;
 
   const cuisine = document.getElementById('restaurant-cuisine');
