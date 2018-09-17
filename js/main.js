@@ -3,21 +3,33 @@ let restaurants,
   cuisines
 var map
 var markers = []
+var indexDB;
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('sw.js', {scope: './'}).then(function(registration) {
+        // Registration was successful
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        // registration failed :(
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+  indexDB = new IndexDB();
   fetchNeighborhoods();
   fetchCuisines();
-  updateRestaurants();
 });
 
 /**
  * Fetch all neighborhoods and set their HTML.
  */
 fetchNeighborhoods = () => {
-  IndexDB.fetchNeighborhoods((error, neighborhoods) => {
+  indexDB.fetchNeighborhoods((error, neighborhoods) => {
     if (error) { // Got an error
       console.error(error);
     } else {
@@ -37,6 +49,7 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
     option.innerHTML = neighborhood;
     option.value = neighborhood;
     select.append(option);
+    select.setAttribute('aria-label', neighborhood);
   });
 }
 
@@ -44,12 +57,13 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
  * Fetch all cuisines and set their HTML.
  */
 fetchCuisines = () => {
-  IndexDB.fetchCuisines((error, cuisines) => {
+  indexDB.fetchCuisines((error, cuisines) => {
     if (error) { // Got an error!
       console.error(error);
     } else {
       self.cuisines = cuisines;
       fillCuisinesHTML();
+      updateRestaurants();
     }
   });
 }
@@ -65,6 +79,7 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
     option.innerHTML = cuisine;
     option.value = cuisine;
     select.append(option);
+    select.setAttribute('aria-label', cuisine);
   });
 }
 
@@ -96,7 +111,7 @@ updateRestaurants = () => {
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
 
-  IndexDB.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
+  indexDB.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
     if (error) { // Got an error!
       console.error(error);
     } else {

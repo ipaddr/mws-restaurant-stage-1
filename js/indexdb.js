@@ -1,6 +1,11 @@
 class IndexDB{
 
-    static get OPEN_DATABASE() {
+    constructor(){
+        this._restaurants = [];
+        this._dbPromise = this.OPEN_DATABASE()
+    }
+
+    OPEN_DATABASE() {
         // If the browser doesn't support service worker,
         // we don't care about having a database
         if (!navigator.serviceWorker) {
@@ -36,79 +41,96 @@ class IndexDB{
     /**
     * Fetch all restaurants.
     */
-    static fetchRestaurants(callback) {
-        IndexDB.OPEN_DATABASE.then(function(db){
+    fetchRestaurants(callback) {
+        // check memory cache first
+        if (this._restaurants && this._restaurants.length > 0) {
+            callback(null, this._restaurants);
+            return;
+        }
+
+        var self = this;
+        // check from index DB
+        this._dbPromise.then(function(db){
+
             var tx = db.transaction('restaurants', 'readwrite');
             var store = tx.objectStore('restaurants');
             var index = store.index('by-id')
 
             return index.getAll().then(function(restaurants){
-
-                if(restaurants && restaurants.length > 0){
-                    callback(null, restaurants);
+                self._restaurants = restaurants
+                if (self._restaurants && self._restaurants.length > 0) {
+                    callback(null, self._restaurants);
                     return;
                 }
 
+                // check from network
                 fetch(IndexDB.DATABASE_URL)
                   .then(function(response) {
                     return response.json();
                   })
                   .then(function(jsonResponse) {
                     const strinJson = JSON.stringify(jsonResponse);
-                    const restaurants = JSON.parse(strinJson);
-                    IndexDB.OPEN_DATABASE.then(function(db){
+                    self._restaurants = JSON.parse(strinJson);
+                    self._dbPromise.then(function(db){
                         if (!db) return;
 
                         var tx = db.transaction('restaurants', 'readwrite');
                         var store = tx.objectStore('restaurants');
 
-                        restaurants.forEach(function(restaurant){
+                        self._restaurants.forEach(function(restaurant){
                             store.put(restaurant);
                         });
 
-                        // limit store to 30 items
-                        var index = store.index('by-id').openCursor(null, 'prev').then(function(cursor){
-                            return cursor.advance(10);
-                        }).then(function deleteRest(cursor){
-                            if (!cursor) return;
-                            cursor.delete();
-                        return cursor.continue().then(deleteRest);
+                        return;
                         });
                     });
-                    callback(null, restaurants);
+                    callback(null, self._restaurants);
                   }).catch(function(error) {
-                    console.log(error);
                     const errorResponse = (`Request failed. Returned status of ${error}`);
                     callback(errorResponse, null);
                   });
 
         }).catch(function(error) {
-            console.log(error);
             const errorResponse = (`Request failed. Returned status of ${error}`);
             callback(errorResponse, null);
         });
-    });
-}
+    }
 
     /**
     * Fetch a restaurant by its ID.
     */
-    static fetchRestaurantById(id, callback) {
-        IndexDB.OPEN_DATABASE.then(function(db){
+    fetchRestaurantById(id, callback) {
+        let restaurant;
+        // check memory cache first
+        if (this._restaurants && this._restaurants.length > 0) {
+            let restaurant;
+            for(var index in this._restaurants){
+                restaurant = this._restaurants[index];
+                if (restaurant.id == id) {
+                    break;
+                }
+            }
+            callback(null, restaurant);
+            return;
+        }
+
+        // get it from database
+        this._dbPromise.then(function(db){
             var tx = db.transaction('restaurants');
             var store = tx.objectStore('restaurants');
             var index = store.index('by-id');
             return index.getAll();
         }).then(function(restaurants){
-            for(var index in restaurants){
-                const restaurant = restaurants[index];
+            this._restaurants = restaurants;
+            for(var index in this._restaurants){
+                restaurant = this._restaurants[index];
                 if (restaurant.id == id) {
-                    callback(null, restaurant);
                     break;
                 }
             }
+            callback(null, restaurant);
+            return;
         }).catch(function(error) {
-            console.log(error);
             const errorResponse = (`Request failed. Returned status of ${error}`);
             callback(errorResponse, null);
         });
@@ -117,9 +139,9 @@ class IndexDB{
     /**
     * Fetch restaurants by a cuisine type with proper error handling.
     */
-    static fetchRestaurantByCuisine(cuisine, callback) {
+    fetchRestaurantByCuisine(cuisine, callback) {
         // Fetch all restaurants  with proper error handling
-        IndexDB.fetchRestaurants((error, restaurants) => {
+        this.fetchRestaurants((error, restaurants) => {
             if (error) {
                 callback(error, null);
             } else {
@@ -133,9 +155,9 @@ class IndexDB{
     /**
     * Fetch restaurants by a neighborhood with proper error handling.
     */
-    static fetchRestaurantByNeighborhood(neighborhood, callback) {
+    fetchRestaurantByNeighborhood(neighborhood, callback) {
         // Fetch all restaurants
-        IndexDB.fetchRestaurants((error, restaurants) => {
+        this.fetchRestaurants((error, restaurants) => {
         if (error) {
             callback(error, null);
         } else {
@@ -149,9 +171,9 @@ class IndexDB{
     /**
     * Fetch restaurants by a cuisine and a neighborhood with proper error handling.
     */
-    static fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, callback) {
+    fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, callback) {
         // Fetch all restaurants
-        IndexDB.fetchRestaurants((error, restaurants) => {
+        this.fetchRestaurants((error, restaurants) => {
         if (error) {
             callback(error, null);
         } else {
@@ -170,9 +192,9 @@ class IndexDB{
     /**
     * Fetch all neighborhoods with proper error handling.
     */
-    static fetchNeighborhoods(callback) {
+    fetchNeighborhoods(callback) {
         // Fetch all restaurants
-        IndexDB.fetchRestaurants((error, restaurants) => {
+        this.fetchRestaurants((error, restaurants) => {
             if (error) {
                 callback(error, null);
             } else {
@@ -188,9 +210,9 @@ class IndexDB{
     /**
     * Fetch all cuisines with proper error handling.
     */
-    static fetchCuisines(callback) {
+    fetchCuisines(callback) {
         // Fetch all restaurants
-        IndexDB.fetchRestaurants((error, restaurants) => {
+        this.fetchRestaurants((error, restaurants) => {
         if (error) {
             callback(error, null);
         } else {
