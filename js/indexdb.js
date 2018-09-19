@@ -114,6 +114,7 @@ class IndexDB{
             return;
         }
 
+        var self = this;
         // get it from database
         this._dbPromise.then(function(db){
             var tx = db.transaction('restaurants');
@@ -121,9 +122,9 @@ class IndexDB{
             var index = store.index('by-id');
             return index.getAll();
         }).then(function(restaurants){
-            this._restaurants = restaurants;
-            for(var index in this._restaurants){
-                restaurant = this._restaurants[index];
+            self._restaurants = restaurants;
+            for(var index in self._restaurants){
+                restaurant = self._restaurants[index];
                 if (restaurant.id == id) {
                     break;
                 }

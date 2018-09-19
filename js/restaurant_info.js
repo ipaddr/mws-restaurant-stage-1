@@ -1,5 +1,6 @@
 let restaurant;
 var map;
+var indexDB;
 
 document.addEventListener('DOMContentLoaded', (event) => {
   if ('serviceWorker' in navigator) {
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
       });
     });
   }
+  indexDB = new IndexDB();
   window.initMap();
 });
 
@@ -48,7 +50,7 @@ fetchRestaurantFromURL = (callback) => {
     error = 'No restaurant id in URL'
     callback(error, null);
   } else {
-    IndexDB.fetchRestaurantById(id, (error, restaurant) => {
+    indexDB.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
         console.error(error);

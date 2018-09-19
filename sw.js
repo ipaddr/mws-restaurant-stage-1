@@ -30,7 +30,8 @@ var filesToCache = [
   '/img/7.jpg',
   '/img/8.jpg',
   '/img/9.jpg',
-  '/js/dbhelper.js',
+  '/js/idb.js',
+  '/js/indexdb.js',
   '/js/main.js',
   '/js/restaurant_info.js'
 ];
